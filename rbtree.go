@@ -1,96 +1,108 @@
-package main
-
-import (
-	"fmt"
-	"os"
-)
+package rbtree
 
 //RBNodeDir is
 type RBNodeDir int
 
 const (
 
-	//RBNodeLeft 左方向
+	//RBNodeLeft is
 	RBNodeLeft RBNodeDir = iota
 
-	//RBNodeRight 右方向
+	//RBNodeRight is
 	RBNodeRight
 
-	//RBNodeHere ここ
+	//RBNodeHere is
 	RBNodeHere
 )
 
 //RBNode is
 type RBNode struct {
 	isRed    bool
-	index    int
+	Index    int
 	parent   *RBNode
 	children [2]*RBNode
 }
 
-//RBCursor is
-type RBCursor struct {
-	node *RBNode
+//RBTree is
+type RBTree struct {
+	Node *RBNode
 	less func(i int, j int) bool
 }
 
-func (cur *RBCursor) clone() *RBCursor {
-	wrk := *cur
+//RBCursor is
+type RBCursor RBTree
+
+//NewTree is
+func NewTree(less func(i int, j int) bool) *RBTree {
+	tree := &RBTree{less: less}
+	return tree
+}
+
+//Clone is
+func (cur *RBTree) Clone() *RBCursor {
+	wrk := RBCursor(*cur)
 	return &wrk
 }
 
-func (cur *RBCursor) root() *RBCursor {
+//Root is
+func (cur *RBTree) Root() *RBTree {
 
-	if cur.node != nil {
-		for ; cur.node.parent != nil; cur.node = cur.node.parent {
+	if cur.Node != nil {
+		for ; cur.Node.parent != nil; cur.Node = cur.Node.parent {
 
 		}
 	}
 	return cur
 }
 
-func (cur *RBCursor) move(dir RBNodeDir) *RBCursor {
+//Move is
+func (cur *RBCursor) Move(dir RBNodeDir) *RBCursor {
 	rev := dir ^ 1
-	if next := cur.node.children[dir]; next != nil {
+	if next := cur.Node.children[dir]; next != nil {
 		for next.children[rev] != nil {
 			next = next.children[rev]
 		}
-		cur.node = next
+		cur.Node = next
 	} else {
 		find := false
-		for cur.node.parent != nil {
-			now := cur.node
-			cur.node = cur.node.parent
-			if cur.node.children[rev] == now {
+		for cur.Node.parent != nil {
+			now := cur.Node
+			cur.Node = cur.Node.parent
+			if cur.Node.children[rev] == now {
 				find = true
 				break
 			}
 		}
 		if !find {
-			cur.node = nil
+			cur.Node = nil
 		}
 	}
 	return cur
 }
-func (cur *RBCursor) find(index int) (*RBCursor, RBNodeDir) {
-	cur.root()
-	dir := RBNodeHere
-	for {
-		if cur.less(index, cur.node.index) {
-			dir = RBNodeLeft
-			next := cur.node.children[dir]
-			if next == nil {
-				break
-			}
-			cur.node = next
 
-		} else if cur.less(cur.node.index, index) {
-			dir = RBNodeRight
-			next := cur.node.children[dir]
+//Find is
+func (cur *RBTree) Find(Index int) (*RBTree, RBNodeDir) {
+	dir := RBNodeHere
+	if cur.Node == nil {
+		return cur, dir
+	}
+	cur.Root()
+	for {
+		if cur.less(Index, cur.Node.Index) {
+			dir = RBNodeLeft
+			next := cur.Node.children[dir]
 			if next == nil {
 				break
 			}
-			cur.node = next
+			cur.Node = next
+
+		} else if cur.less(cur.Node.Index, Index) {
+			dir = RBNodeRight
+			next := cur.Node.children[dir]
+			if next == nil {
+				break
+			}
+			cur.Node = next
 		} else {
 			dir = RBNodeHere
 			break
@@ -99,59 +111,54 @@ func (cur *RBCursor) find(index int) (*RBCursor, RBNodeDir) {
 	return cur, dir
 }
 
-func (cur *RBCursor) add(index int) *RBCursor {
-	newNode := &RBNode{index: index, isRed: true}
-	cur.root()
-	if cur.node != nil {
-		pnode, dir := cur.find(newNode.index)
+//Add is
+func (cur *RBTree) Add(Index int) *RBTree {
+	newNode := &RBNode{Index: Index, isRed: true}
+	cur.Root()
+	if cur.Node != nil {
+		pnode, dir := cur.Find(newNode.Index)
 		if dir != RBNodeHere {
-			newNode.parent = pnode.node
+			newNode.parent = pnode.Node
 			newNode.parent.children[dir] = newNode
 
-			wrk := cur.clone()
-			wrk.node = newNode
+			wrk := cur.Clone()
+			wrk.Node = newNode
 			wrk.opt()
 		} else {
-			pnode.node.index = newNode.index
-			newNode = pnode.node
+			pnode.Node.Index = newNode.Index
+			newNode = pnode.Node
 		}
 	}
-	cur.node = newNode
+	cur.Node = newNode
 	return cur
 }
 
-func (node *RBNode) sibiling(child *RBNode) *RBNode {
+func (Node *RBNode) flip(dir RBNodeDir) {
+	curGranPa := Node.parent
+	newParent := Node.children[dir]
+	if curGranPa != nil {
+		curGranPa.children[Node.dir()] = newParent
+	}
+	newParent.parent, Node.parent = Node.parent, newParent
+
+	Node.children[dir] = newParent.children[dir^1]
+	if Node.children[dir] != nil {
+		Node.children[dir].parent = Node
+	}
+	newParent.children[dir^1] = Node
+
+}
+func (Node *RBNode) dir() RBNodeDir {
 	dir := RBNodeLeft
-	if node.children[RBNodeLeft] == child {
+	if Node.parent.children[dir] != Node {
 		dir = RBNodeRight
 	}
-	return node.children[dir]
-}
-
-func (node *RBNode) flip(dir RBNodeDir) {
-	curGranPa := node.parent
-	newParent := node.children[dir]
-	newParent.parent, node.parent = node.parent, newParent
-
-	node.children[dir] = newParent.children[dir^1]
-	if node.children[dir] != nil {
-		node.children[dir].parent = node
-	}
-	newParent.children[dir^1] = node
-
-	if curGranPa != nil {
-		dir = RBNodeLeft
-		if curGranPa.children[dir] != node {
-			dir ^= 1
-		}
-		curGranPa.children[dir] = newParent
-	}
-
+	return dir
 }
 func (cur *RBCursor) opt() {
-	node := cur.node
-	for node != nil && node.isRed {
-		parent := node.parent
+	Node := cur.Node
+	for Node != nil && Node.isRed {
+		parent := Node.parent
 		if parent == nil {
 			break
 		} else if !parent.isRed {
@@ -160,19 +167,16 @@ func (cur *RBCursor) opt() {
 			parent.isRed = false
 		} else {
 			grandparent := parent.parent
-			parentsibiling := grandparent.sibiling(parent)
+			parentsibiling := grandparent.children[parent.dir()^1]
 			if parentsibiling != nil && parentsibiling.isRed {
 				grandparent.isRed = true
 				parent.isRed = false
 				parentsibiling.isRed = false
-				node = grandparent
+				Node = grandparent
 			} else {
-				dir := RBNodeLeft
-				if grandparent.children[dir] != parent {
-					dir ^= 1
-				}
+				dir := parent.dir()
 
-				if parent.children[dir] != node {
+				if parent.children[dir] != Node {
 					parent.flip(dir ^ 1)
 				}
 
@@ -185,31 +189,122 @@ func (cur *RBCursor) opt() {
 	}
 }
 
-func (cur *RBCursor) end(dir RBNodeDir) *RBCursor {
-	cur.root()
-	if cur.node != nil {
-		for ; cur.node.children[dir] != nil; cur.node = cur.node.children[dir] {
+//End is
+func (cur *RBTree) End(dir RBNodeDir) *RBCursor {
+	cur.Root()
+	if cur.Node != nil {
+		for ; cur.Node.children[dir] != nil; cur.Node = cur.Node.children[dir] {
 
 		}
 	}
-	return cur
+	return cur.Clone()
 }
-func main() {
-	x := []int{7, 5, 9, 6, 8, 9, 10, 11, 12, 13, 14}
-	tree := RBCursor{less: func(i, j int) bool {
-		return x[i] < x[j]
-	}}
 
-	{
-		for i := 0; i < len(x); i++ {
-			tree.add(i)
-		}
-		for cur := tree.clone().end(RBNodeLeft); cur.node != nil; cur.move(RBNodeRight) {
-			fmt.Println(x[cur.node.index])
-		}
-		for cur := tree.clone().end(RBNodeRight); cur.node != nil; cur.move(RBNodeLeft) {
-			fmt.Println(x[cur.node.index])
+func (Node *RBNode) cut() {
+	if Node.parent != nil {
+		Node.parent.children[Node.dir()] = nil
+	}
+}
+
+//Delete is
+func (cur *RBTree) Delete(Index int) (ret bool) {
+	//wcur := cur.Root().Clone()
+	wcur, dir := cur.Find(Index)
+	delNode := wcur.Node
+	if delNode == nil || dir != RBNodeHere {
+		return
+	}
+	ret = true
+
+	dir = RBNodeLeft
+	if delNode.children[dir] == nil {
+		dir = RBNodeRight
+		if delNode.children[dir] == nil {
+			dir = RBNodeHere
 		}
 	}
-	os.Exit(0)
+
+	if delNode.children[RBNodeLeft] != nil &&
+		delNode.children[RBNodeRight] != nil {
+		var wrk *RBCursor
+		if dir != RBNodeHere {
+			wrk = wcur.Clone().Move(dir)
+			delNode.Index = wrk.Node.Index
+			delNode = wrk.Node
+			dir = RBNodeLeft
+			if delNode.children[dir] == nil {
+				dir = RBNodeRight
+				if delNode.children[dir] == nil {
+					dir = RBNodeHere
+				}
+			}
+		}
+	}
+
+	if dir == RBNodeHere {
+		if delNode.isRed {
+			delNode.cut()
+			return
+		}
+	} else {
+		wrk := delNode.children[dir]
+		delNode.Index = wrk.Index
+		wrk.cut()
+		return
+	}
+
+	Node := delNode
+	for {
+		parent := Node.parent
+		if parent == nil {
+			break
+		}
+
+		dir := Node.dir()
+		dirOther := dir ^ 1
+		sibiling := parent.children[dirOther]
+
+		if sibiling.isRed {
+			parent.flip(dirOther)
+			sibiling.isRed = false
+			parent.isRed = true
+			sibiling = parent.children[dirOther]
+		}
+		//sibiling is Black
+
+		grandChild := sibiling.children[dirOther]
+		if grandChild == nil || !grandChild.isRed {
+			//far grand child is Black
+			grandChild = sibiling.children[dir]
+			if grandChild == nil || !grandChild.isRed {
+				//near grand child is Black
+				sibiling.isRed = true
+				if parent.isRed {
+					parent.isRed = false
+					break
+				} else {
+					Node = parent
+					continue
+				}
+			}
+			sibiling.flip(dir)
+			sibiling, grandChild = grandChild, sibiling
+			sibiling.isRed = false
+			grandChild.isRed = true
+		}
+		//sibiling is Black && far grandChild is Red
+
+		saveColor := parent.isRed
+		parent.flip(dirOther)
+		sibiling.isRed = saveColor
+		parent.isRed = false
+		grandChild.isRed = false
+		break
+
+	}
+	delNode.cut()
+	if delNode.parent == nil {
+		cur.Node = nil
+	}
+	return
 }
