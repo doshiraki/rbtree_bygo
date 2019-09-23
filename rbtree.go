@@ -287,6 +287,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 					continue
 				}
 			}
+			//near grand child is Red and far grand child is Black
 			sibiling.flip(dir)
 			sibiling, grandChild = grandChild, sibiling
 			sibiling.isRed = false
