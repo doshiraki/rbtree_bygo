@@ -207,7 +207,6 @@ func (Node *RBNode) cut() {
 
 //Delete is
 func (cur *RBTree) Delete(Index int) (ret bool) {
-	//wcur := cur.root().Cursor()
 	wcur, dir := cur.Find(Index)
 	delNode := wcur.Node
 	if delNode == nil || dir != RBNodeHere {
