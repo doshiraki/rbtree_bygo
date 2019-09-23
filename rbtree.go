@@ -201,6 +201,17 @@ func (Node *RBNode) cut() {
 	}
 }
 
+func (Node *RBNode) hasDir() RBNodeDir {
+	dir := RBNodeLeft
+	if Node.children[dir] == nil {
+		dir = RBNodeRight
+		if Node.children[dir] == nil {
+			dir = RBNodeHere
+		}
+	}
+	return dir
+}
+
 //Delete is
 func (cur *RBTree) Delete(Index int) (ret bool) {
 	wcur, dir := cur.Find(Index)
@@ -210,13 +221,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 	delNode := wcur.Node
 	ret = true
 
-	dir = RBNodeLeft
-	if delNode.children[dir] == nil {
-		dir = RBNodeRight
-		if delNode.children[dir] == nil {
-			dir = RBNodeHere
-		}
-	}
+	dir = delNode.hasDir()
 
 	if delNode.children[RBNodeLeft] != nil &&
 		delNode.children[RBNodeRight] != nil {
@@ -225,13 +230,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 			wrk = wcur.Cursor().Move(dir)
 			delNode.Index = wrk.Node.Index
 			delNode = wrk.Node
-			dir = RBNodeLeft
-			if delNode.children[dir] == nil {
-				dir = RBNodeRight
-				if delNode.children[dir] == nil {
-					dir = RBNodeHere
-				}
-			}
+			dir = delNode.hasDir()
 		}
 	}
 
