@@ -81,7 +81,7 @@ func (cur *RBCursor) Move(dir RBNodeDir) *RBCursor {
 
 //Find is
 func (cur *RBTree) Find(Index int) (*RBTree, RBNodeDir) {
-	dir := RBNodeHere
+	dir := RBNodeLeft
 	if cur.Node == nil {
 		return cur, dir
 	}
@@ -204,10 +204,10 @@ func (Node *RBNode) cut() {
 //Delete is
 func (cur *RBTree) Delete(Index int) (ret bool) {
 	wcur, dir := cur.Find(Index)
-	delNode := wcur.Node
-	if delNode == nil || dir != RBNodeHere {
+	if dir != RBNodeHere {
 		return
 	}
+	delNode := wcur.Node
 	ret = true
 
 	dir = RBNodeLeft
