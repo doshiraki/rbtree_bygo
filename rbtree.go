@@ -238,6 +238,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 	if dir == RBNodeHere {
 		if delNode.isRed {
 			delNode.cut()
+			cur.Node = delNode.parent
 			return
 		}
 	} else {
@@ -298,10 +299,6 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 
 	}
 	delNode.cut()
-	if delNode.parent == nil {
-		cur.Node = nil
-	} else {
-		cur.root()
-	}
+	cur.Node = delNode.parent
 	return
 }
