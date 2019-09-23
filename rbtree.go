@@ -119,10 +119,7 @@ func (cur *RBTree) Add(Index int) *RBTree {
 		if dir != RBNodeHere {
 			newNode.parent = pnode.Node
 			newNode.parent.children[dir] = newNode
-
-			wrk := cur.Cursor()
-			wrk.Node = newNode
-			wrk.opt()
+			newNode.opt()
 		} else {
 			pnode.Node.Index = newNode.Index
 			newNode = pnode.Node
@@ -154,8 +151,7 @@ func (Node *RBNode) dir() RBNodeDir {
 	}
 	return dir
 }
-func (cur *RBCursor) opt() {
-	Node := cur.Node
+func (Node *RBNode) opt() {
 	for Node != nil && Node.isRed {
 		parent := Node.parent
 		if parent == nil {
