@@ -296,9 +296,8 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 		}
 		//sibling is Black && far nephew is Red
 
-		saveColor := parent.isRed
 		parent.flip(dirOther)
-		sibling.isRed = saveColor
+		sibling.isRed = parent.isRed
 		parent.isRed = false
 		nephew.isRed = false
 		break
