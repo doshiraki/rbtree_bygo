@@ -300,6 +300,8 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 	delNode.cut()
 	if delNode.parent == nil {
 		cur.Node = nil
+	} else {
+		cur.root()
 	}
 	return
 }
