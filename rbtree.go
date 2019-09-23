@@ -38,14 +38,13 @@ func NewTree(less func(i int, j int) bool) *RBTree {
 	return tree
 }
 
-//Clone is
-func (cur *RBTree) Clone() *RBCursor {
+//Cursor is
+func (cur *RBTree) Cursor() *RBCursor {
 	wrk := RBCursor(*cur)
 	return &wrk
 }
 
-//Root is
-func (cur *RBTree) Root() *RBTree {
+func (cur *RBTree) root() *RBTree {
 
 	if cur.Node != nil {
 		for ; cur.Node.parent != nil; cur.Node = cur.Node.parent {
@@ -86,7 +85,7 @@ func (cur *RBTree) Find(Index int) (*RBTree, RBNodeDir) {
 	if cur.Node == nil {
 		return cur, dir
 	}
-	cur.Root()
+	cur.root()
 	for {
 		if cur.less(Index, cur.Node.Index) {
 			dir = RBNodeLeft
@@ -114,14 +113,14 @@ func (cur *RBTree) Find(Index int) (*RBTree, RBNodeDir) {
 //Add is
 func (cur *RBTree) Add(Index int) *RBTree {
 	newNode := &RBNode{Index: Index, isRed: true}
-	cur.Root()
+	cur.root()
 	if cur.Node != nil {
 		pnode, dir := cur.Find(newNode.Index)
 		if dir != RBNodeHere {
 			newNode.parent = pnode.Node
 			newNode.parent.children[dir] = newNode
 
-			wrk := cur.Clone()
+			wrk := cur.Cursor()
 			wrk.Node = newNode
 			wrk.opt()
 		} else {
@@ -191,13 +190,13 @@ func (cur *RBCursor) opt() {
 
 //End is
 func (cur *RBTree) End(dir RBNodeDir) *RBCursor {
-	cur.Root()
+	cur.root()
 	if cur.Node != nil {
 		for ; cur.Node.children[dir] != nil; cur.Node = cur.Node.children[dir] {
 
 		}
 	}
-	return cur.Clone()
+	return cur.Cursor()
 }
 
 func (Node *RBNode) cut() {
@@ -208,7 +207,7 @@ func (Node *RBNode) cut() {
 
 //Delete is
 func (cur *RBTree) Delete(Index int) (ret bool) {
-	//wcur := cur.Root().Clone()
+	//wcur := cur.root().Cursor()
 	wcur, dir := cur.Find(Index)
 	delNode := wcur.Node
 	if delNode == nil || dir != RBNodeHere {
@@ -228,7 +227,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 		delNode.children[RBNodeRight] != nil {
 		var wrk *RBCursor
 		if dir != RBNodeHere {
-			wrk = wcur.Clone().Move(dir)
+			wrk = wcur.Cursor().Move(dir)
 			delNode.Index = wrk.Node.Index
 			delNode = wrk.Node
 			dir = RBNodeLeft
