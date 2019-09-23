@@ -265,6 +265,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 		sibling := parent.children[dirOther]
 
 		if sibling.isRed {
+			//sibling is Red
 			parent.flip(dirOther)
 			sibling.isRed = false
 			parent.isRed = true
@@ -274,10 +275,10 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 
 		nephew := sibling.children[dirOther]
 		if nephew == nil || !nephew.isRed {
-			//far grand child is Black
+			//far nephew is Black
 			nephew = sibling.children[dir]
 			if nephew == nil || !nephew.isRed {
-				//near grand child is Black
+				//near nephew is Black
 				sibling.isRed = true
 				if parent.isRed {
 					parent.isRed = false
@@ -287,7 +288,7 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 					continue
 				}
 			}
-			//near grand child is Red and far grand child is Black
+			//near nephew is Red and far nephew is Black
 			sibling.flip(dir)
 			sibling, nephew = nephew, sibling
 			sibling.isRed = false
