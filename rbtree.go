@@ -167,11 +167,11 @@ func (cur *RBCursor) opt() {
 			parent.isRed = false
 		} else {
 			grandparent := parent.parent
-			parentsibiling := grandparent.children[parent.dir()^1]
-			if parentsibiling != nil && parentsibiling.isRed {
+			parentsibling := grandparent.children[parent.dir()^1]
+			if parentsibling != nil && parentsibling.isRed {
 				grandparent.isRed = true
 				parent.isRed = false
-				parentsibiling.isRed = false
+				parentsibling.isRed = false
 				Node = grandparent
 			} else {
 				dir := parent.dir()
@@ -262,23 +262,23 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 
 		dir := Node.dir()
 		dirOther := dir ^ 1
-		sibiling := parent.children[dirOther]
+		sibling := parent.children[dirOther]
 
-		if sibiling.isRed {
+		if sibling.isRed {
 			parent.flip(dirOther)
-			sibiling.isRed = false
+			sibling.isRed = false
 			parent.isRed = true
-			sibiling = parent.children[dirOther]
+			sibling = parent.children[dirOther]
 		}
-		//sibiling is Black
+		//sibling is Black
 
-		grandChild := sibiling.children[dirOther]
-		if grandChild == nil || !grandChild.isRed {
+		nephew := sibling.children[dirOther]
+		if nephew == nil || !nephew.isRed {
 			//far grand child is Black
-			grandChild = sibiling.children[dir]
-			if grandChild == nil || !grandChild.isRed {
+			nephew = sibling.children[dir]
+			if nephew == nil || !nephew.isRed {
 				//near grand child is Black
-				sibiling.isRed = true
+				sibling.isRed = true
 				if parent.isRed {
 					parent.isRed = false
 					break
@@ -288,18 +288,18 @@ func (cur *RBTree) Delete(Index int) (ret bool) {
 				}
 			}
 			//near grand child is Red and far grand child is Black
-			sibiling.flip(dir)
-			sibiling, grandChild = grandChild, sibiling
-			sibiling.isRed = false
-			grandChild.isRed = true
+			sibling.flip(dir)
+			sibling, nephew = nephew, sibling
+			sibling.isRed = false
+			nephew.isRed = true
 		}
-		//sibiling is Black && far grandChild is Red
+		//sibling is Black && far nephew is Red
 
 		saveColor := parent.isRed
 		parent.flip(dirOther)
-		sibiling.isRed = saveColor
+		sibling.isRed = saveColor
 		parent.isRed = false
-		grandChild.isRed = false
+		nephew.isRed = false
 		break
 
 	}
